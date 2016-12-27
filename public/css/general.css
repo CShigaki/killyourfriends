@@ -1,0 +1,17 @@
+.fontPreload {
+  position: absolute;
+  left: -100px;
+  font-family: "Erthqake";
+}
+
+.server-selection {
+  display: none;
+  width: 800px;
+  height: 600px;
+}
+
+.server-creation {
+  display: none;
+  width: 800px;
+  height: 600px;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kill Your Friends!</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/js/libs/phaser.js"></script>
+    <script type="text/javascript" src="/js/custom/boot.js"></script>
+    <script type="text/javascript" src="/js/custom/load.js"></script>
+    <script type="text/javascript" src="/js/custom/menu.js"></script>
+    <script type="text/javascript" src="/js/custom/main.js"></script>
+    <script type="text/javascript" src="/js/custom/game.js"></script>
+    <link rel="stylesheet" type="text/css" href="/assets/fonts/stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="/css/general.css">
+  </head>
+  <body>
+    <p class="fontPreload" style="font-family: Erthqake;"></p>
+    <div id="gameDiv">
+      
+    </div>
+    <div class="server-selection">
+      <form class="server-list">
+        <!-- <input type="radio" name="server" value="0">Server 1
+        <input type="radio" name="server" value="1">Server 2
+        <input type="radio" name="server" value="2">Server 3 -->
+      </form>
+      <button class="join-server" value="Join Server">Join Server</button>
+    </div>
+
+    <div class="server-creation">
+      <form class="server-form">
+        <label for="server-name">Server Name</label>
+        <br>
+        <input type="text" class="server-name"></input>
+        <br>
+        <br>
+        <label for="players-slots">Amount of players in the server</label>
+        <br>
+        <select class="players-slots">
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </form>
+      <br>
+      <button class="create-server" value="Create Server">Create Server</button>
+    </div>
+  </body>
+</html>
