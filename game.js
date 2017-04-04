@@ -2,34 +2,20 @@ var util = require("util");
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app)
-var morgan = require('morgan');
+//var morgan = require('morgan');
 var port = 8005;
-var playersOnline = new Array();
-var serverList = new Array();
-var currentServerId = 0;
-// Sample server structure
-// Keep in mind that the communication to players in this server will be made by rooms created with the server id, which is unique.
-serverList[0] = {
-  serverId: 0,
-  name: 'TestServer 1',
-  occupiedSlots: 1,
-  slots: 4
-};
-serverList[1] = {
-  serverId: 0,
-  name: 'TestServer 2',
-  occupiedSlots: 1,
-  slots: 4
-};
-serverList[2] = {
-  serverId: 0,
-  name: 'TestServer 3',
-  occupiedSlots: 1,
-  slots: 4
-};
-currentServerId = 3;
 
-app.use(morgan('dev'));
+var ServerManager = require('./ServerManager.js');
+var Player = require('./Player.js');
+
+var serverManager = new ServerManager();
+/*serverManager.createServer('TestServer', 4, 'kekplayertest', [{ name: 'kekplayertest' }]);
+serverManager.createServer('TestServer22', 4, 'kekplayertest22', [{ name: 'kekplayertest22' }]);*/
+//console.log(serverManager.retrieveServers());
+
+var playersOnline = new Array();
+
+//app.use(morgan('dev'));
 db = require('mongojs')('localhost/killfriends', ['users', 'rooms']),
 app.use(express.static(__dirname + '/public'));
 var io = require('socket.io').listen(server);
@@ -52,39 +38,114 @@ function setEventHandlers() {
 function onSocketConnection(client) {
   // Search the database for the credentials and login.
   client.on('disconnect', playerDisconnected);
+  client.on('register', registerNewPlayer);
   client.on('retrieve-servers', sendServers);
   client.on('create-server', createServer);
   client.on('join-server', joinServer);
+  client.on('leave-server', leaveServer);
+  client.on('ready', setReadyState);
 
   // Message for debugging purposes.
   console.log('Player connected: ' + client.id);
 }
 
-function joinServer(data) {
+function setReadyState(data) {
+  console.log('Ready State: ' + data.readyState);
+  console.log('Server Name: ' + data.serverName);
+  var id = this.id;
+  console.log(serverManager.getServer(data.serverName).getPlayer(id));
+  // Get the readystate sent by the client and set to it's corresponding player.
+  if (data.readyState)
+    serverManager.getServer(data.serverName).getPlayer(id).getReady();
+  else
+    serverManager.getServer(data.serverName).getPlayer(id).notReady();
 
+  // And resend lobby info back to players.
+  io.to(data.serverName).emit('lobby-info', {
+    owner: serverManager.getServer(data.serverName).getOwner(),
+    players: serverManager.getServer(data.serverName).retrievePlayersWithoutId(),
+    slots: serverManager.getServer(data.serverName).slots,
+  })
+}
+
+function registerNewPlayer(data) {
+  var id = this.id;
+  playersOnline[id] = { name: data.name };
+}
+
+function leaveServer(data) {
+  /*console.log('A Player Left the Room: ' + data.playerName);
+  console.log('Room Name: ' + data.serverName);*/
+  if (serverManager.getServer(data.serverName).getOwner() == data.playerName) {
+    serverManager.destroyServer(data.serverName);
+
+    io.to(data.serverName).emit('leave-info', { admin: 1 });
+    io.emit('server-list', { servers: serverManager.retrieveServers() } );
+    this.leave(data.serverName);
+
+    /*io.sockets.forEach(function(socket) {
+      socket.leave(data.serverName);
+    });
+    io.sockets.clients(data.serverName).forEach(function(s){
+      s.leave(data.serverName);
+    });*/
+  }
+  else {
+    this.leave(data.serverName)
+    serverManager.getServer(data.serverName).removePlayer(this.id);
+    this.emit('leave-info', { admin: 0 });
+    io.emit('server-list', { servers: serverManager.retrieveServers() } );
+    io.to(data.serverName).emit('lobby-info', {
+      owner: serverManager.getServer(data.serverName).getOwner(),
+      players: serverManager.getServer(data.serverName).retrievePlayersWithoutId(),
+      slots: serverManager.getServer(data.serverName).slots,
+    });
+  }
+  //console.log(serverManager.retrieveServers());
+}
+
+function joinServer(data) {
+  var owner = this;
+  // The player clicked to join the room.
+  // If there are no free slots, send a message informing the user what happened.
+  if (serverManager.getServer(data.name).freeSlots() == 0) {
+    owner.emit('join-fail', { message: 'The server is full.' } );
+    return;
+  }
+  //console.log('Joining server: ' + data.name + ' Player id: ' + owner.id);
+  // Increments the occupiedSlots in the server and join the channel.
+  serverManager.getServer(data.name).addPlayer(owner.id, playersOnline[owner.id].name, owner);
+  owner.join(data.name);
+  // Now populate the server with the new player
+  // Now we send the info to all clients inside the lobby.
+  io.to(data.name).emit('lobby-info', {
+    owner: serverManager.getServer(data.name).getOwner(),
+    players: serverManager.getServer(data.name).retrievePlayersWithoutId(),
+    slots: serverManager.getServer(data.name).slots,
+  });
+  io.emit('server-list', { servers: serverManager.retrieveServers() } );
 }
 
 function createServer(data) {
   var owner = this;
+  var id = owner.id;
   // The owner automatically joins this room.
-  // To save processing the room is set as the server id.
-  this.join(currentServerId);
-  // serverID: an incremental id generated by the server.
-  // name: the name of the server defined by the client.
-  // occupiedSlots: to avoid making calculations on the server when informing the number of people in the server we use this integer instead of comparing the playersOnline length with the slots.
-  // slots: the maximum amount of people that can join the room.
-  // playersOnline: the list of people in the room. the objects stored in this array can be used to emit events.
-  serverList[currentServerId] = {
-    serverId: currentServerId,
-    name: data.name,
-    occupiedSlots: 1,
-    slots: data.slots,
-    playersOnline: [owner],
-  };
-  // After adding the server to the list, increment the id for the next server.
-  currentServerId++;
+  // To save processing the room is set as the server name.
+  owner.join(data.name);
+
+  // Creates the server through the ServerManager.
+  var playersArray = new Array();
+  playersArray[id] = new Player(id, playersOnline[id].name, owner);
+  serverManager.createServer(data.name, data.slots, playersOnline[id].name, playersArray);
+
   // Send it to the client.
-  io.emit('server-list', { servers: serverList });
+  // Info about the retrievePlayersWithoutId inside the class.
+  io.to(data.name).emit('lobby-info', {
+    owner: playersOnline[id].name,
+    players: serverManager.getServer(data.name).retrievePlayersWithoutId(),
+    slots: serverManager.getServer(data.name).slots,
+  });
+  io.emit('server-list', { servers: serverManager.retrieveServers() } );
 }
 
 function playerDisconnected() {
@@ -93,24 +154,9 @@ function playerDisconnected() {
 
 function sendServers(client) {
   var clientSocket = this;
-  console.log(serverList);
   // I thought about integrate the server creation with mongo but it makes no sense as it would be more performance expensive than just storing the servers in an array.
   // So instead of checking a database, we just send the array we used to create the server.
-  clientSocket.emit('server-list', { servers: serverList });
-  /*db.rooms.find({}, function(err, found) {
-    if (err || !found) {
-      clientSocket.emit('server-list', { servers: new Array() });
-    }
-    else {
-      var serverList = new Array();
-      found.forEach(function(value) {
-        serverList.push({ name: value.name, freeslots: 4, slots: 4 });
-      });
-
-      console.log(serverList);
-      clientSocket.emit('server-list', { servers: serverList });
-    }
-  });*/
+  clientSocket.emit('server-list', { servers: serverManager.retrieveServers() });
 }
 
 init();

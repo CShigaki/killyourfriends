@@ -2,39 +2,50 @@
 <html>
   <head>
     <title>Kill Your Friends!</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="/js/libs/jquery.min.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="/js/libs/phaser.js"></script>
-    <script type="text/javascript" src="/js/custom/boot.js"></script>
-    <script type="text/javascript" src="/js/custom/load.js"></script>
-    <script type="text/javascript" src="/js/custom/menu.js"></script>
-    <script type="text/javascript" src="/js/custom/main.js"></script>
+    <script type="text/javascript" src="/js/libs/three.js/build/three.js"></script>
+    <script type="text/javascript" src="/js/libs/three.js/examples/js/controls/OrbitControls.js"></script>
+    <script type="text/javascript" src="/js/libs/threex/THREExFullscreen.js"></script>
+    <script type="text/javascript" src="/js/custom/MazeGenerator/Tile.js"></script>
+    <script type="text/javascript" src="/js/custom/MazeGenerator/Worker.js"></script>
+    <script type="text/javascript" src="/js/custom/MazeGenerator/MazeGenerator.js"></script>
     <script type="text/javascript" src="/js/custom/game.js"></script>
+    <script type="text/javascript" src="/js/custom/MenuScene.js"></script>
+    <script type="text/javascript" src="/js/custom/HTMLHandlers.js"></script>
+    <script type="text/javascript" src="/js/custom/ServerHandlers.js"></script>
     <link rel="stylesheet" type="text/css" href="/assets/fonts/stylesheet.css">
     <link rel="stylesheet" type="text/css" href="/css/general.css">
   </head>
   <body>
+    <p class="back-to-menu">Back to main menu</p>
     <p class="fontPreload" style="font-family: Erthqake;"></p>
-    <div id="gameDiv">
-      
+    <div class="name-selection">
+      <p>Choose your name</p>
+      <input type="text" class="player-name" maxlength="14" />
+      <p><a class="register-name">Continue</a></p>
+    </div>
+    <div id="main-menu">
+      <p><a class="create-server-menu">Create Server</a></p>
+      <p><a class="browse-server-menu">Browse Server</a></p>
     </div>
     <div class="server-selection">
-      <form class="server-list">
+      <table class="server-list">
         <!-- <input type="radio" name="server" value="0">Server 1
         <input type="radio" name="server" value="1">Server 2
         <input type="radio" name="server" value="2">Server 3 -->
-      </form>
-      <button class="join-server" value="Join Server">Join Server</button>
+      </table>
+      <p><a class="join-server">Join Server</a></p>
     </div>
 
     <div class="server-creation">
       <form class="server-form">
-        <label for="server-name">Server Name</label>
-        <br>
+        <p>Server Name</p>
         <input type="text" class="server-name"></input>
         <br>
         <br>
         <label for="players-slots">Amount of players in the server</label>
+        <br>
         <br>
         <select class="players-slots">
           <option value="2" selected>2</option>
@@ -43,9 +54,19 @@
           <option value="5">5</option>
           <option value="6">6</option>
         </select>
+        <p><a class="create-server">Create Server</a></p>
       </form>
-      <br>
-      <button class="create-server" value="Create Server">Create Server</button>
+    </div>
+
+    <div class="waiting-lobby">
+      <p class="leave-room-p"><a class="leave-room">Leave Room</a></p>
+      <h1>ROOM OWNER <span class="owner-name">Owner-name</span></h1>
+      <h3>Players currently in this room <span class="lobby-slots"></span></h3>
+      <table class="player-listing">
+        
+      </table>
+      <p><a data-ready="false" class="get-ready">Ready</a></p>
+      <p><a class="start-game">Start Game</a></p>
     </div>
   </body>
 </html>
