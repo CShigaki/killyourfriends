@@ -107,3 +107,12 @@ select option {
   top: 10px;
   left: 30px;
 }
+
+.loading-screen {
+  text-align: center;
+  top: 40%;
+  left: 50%; 
+  position: absolute;
+  transform: translate(-50%);
+  display: none;
+}

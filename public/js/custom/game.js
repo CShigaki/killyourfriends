@@ -2,7 +2,7 @@ var socket = io('http://' + window.location.hostname + ':8005');
 var $ = jQuery;
 var scene, camera, renderer, controls;
 var clock = new THREE.Clock();
-var currentServer = '', playerName = '', currentScene = '';
+var currentServer = '', playerName = '', currentScene = '', roomOwner = false;
 var SCREEN_WIDTH, SCREEN_HEIGHT;
 // camera attributes
 var VIEW_ANGLE, ASPECT, NEAR, FAR;

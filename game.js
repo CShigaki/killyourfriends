@@ -44,9 +44,18 @@ function onSocketConnection(client) {
   client.on('join-server', joinServer);
   client.on('leave-server', leaveServer);
   client.on('ready', setReadyState);
+  client.on('start-game', checkStartGameStatus);
+  client.on('generated-map', sendGeneratedMapToPlayers)
 
   // Message for debugging purposes.
   console.log('Player connected: ' + client.id);
+}
+
+function sendGeneratedMapToPlayers(data) {
+  console.log('Receiving generated map from server: ' + data.serverName);
+  io.to(data.serverName).emit('init-game', {
+    map: data.map,
+  });
 }
 
 function setReadyState(data) {
@@ -68,14 +77,24 @@ function setReadyState(data) {
   })
 }
 
+function checkStartGameStatus(data) {
+  console.log('A new game is trying to start on server: ' + data.serverName);
+  console.log('Checking if all players are ready.');
+  
+  /*if (!serverManager.getServer(data.serverName).canStartGame()) {
+    io.to(data.serverName).emit('start-fail', { message: 'All players must be ready for the game to start!' })
+    return;
+  }*/
+
+  io.to(data.serverName).emit('game-loading');
+}
+
 function registerNewPlayer(data) {
   var id = this.id;
   playersOnline[id] = { name: data.name };
 }
 
 function leaveServer(data) {
-  /*console.log('A Player Left the Room: ' + data.playerName);
-  console.log('Room Name: ' + data.serverName);*/
   if (serverManager.getServer(data.serverName).getOwner() == data.playerName) {
     serverManager.destroyServer(data.serverName);
 
@@ -115,6 +134,7 @@ function joinServer(data) {
   //console.log('Joining server: ' + data.name + ' Player id: ' + owner.id);
   // Increments the occupiedSlots in the server and join the channel.
   serverManager.getServer(data.name).addPlayer(owner.id, playersOnline[owner.id].name, owner);
+  console.log('Player ' + playersOnline[owner.id].name + ' joining server ' + data.name);
   owner.join(data.name);
   // Now populate the server with the new player
   // Now we send the info to all clients inside the lobby.
@@ -131,6 +151,7 @@ function createServer(data) {
   var id = owner.id;
   // The owner automatically joins this room.
   // To save processing the room is set as the server name.
+  console.log('Player ' + playersOnline[id].name + ' joining server ' + data.name);
   owner.join(data.name);
 
   // Creates the server through the ServerManager.

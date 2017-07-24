@@ -1,32 +1,20 @@
-function initMenuScene() {
-  currentScene = 'menu';
-  ///////////
-  // SCENE //
-  ///////////
+function initGameScene(map) {
+  currentScene = 'game';
+
+  console.log(map);
+
   scene = new THREE.Scene();
-  ////////////
-  // CAMERA //
-  ////////////
-  
-  // set up camera
+
   camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-  // add the camera to the scene
   scene.add(camera);
-  // the camera defaults to position (0,0,0)
-  //  so pull it back (z = 400) and up (y = 100) and set the angle towards the scene origin
   camera.position.set(0,300,200);
   camera.lookAt(scene.position);
-  //////////////
-  // RENDERER //
-  //////////////
-  // create and start the renderer; choose antialias setting.
+
   renderer = new THREE.WebGLRenderer( {antialias:true} );
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   renderer.shadowMap.enabled = true;
   document.body.appendChild( renderer.domElement );
-  //////////////
-  // CONTROLS //
-  //////////////
+
   controls = new THREE.OrbitControls( camera, renderer.domElement );
   controls.addEventListener( 'change', render ); // remove when using animation loop
   controls.enableZoom = true;
@@ -56,7 +44,8 @@ function initMenuScene() {
   scene.add( axes );
   // fog must be added to scene before first render
   scene.fog = new THREE.FogExp2( 0x999e9ff, 0.0005 );
-  var generator = new MazeGenerator();
 
-  generator.generateMaze(20, 20, 10, 10, scene);
+  var generator = new MazeGenerator();
+  //generator.generateMaze(20, 20, 20, 20, scene);
+  generator.generateMazeFromWallsArray(map, 20, 20, scene);
 }

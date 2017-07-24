@@ -6,9 +6,32 @@ socket.on('lobby-info', displayLobby);
 socket.on('join-fail', displayJoinError)
 // leave-info: server sends a confirmation message when an user leaves a room. 
 socket.on('leave-info', leaveRoom);
+// game-loading: server sends a message so we can show the loading screen. Carries no data.
+socket.on('game-loading', displayLoading);
+// start-fail: if the owner can't start the game for some reason, the server sends this event.
+socket.on('start-fail', displayStartGameError);
+// init-game: the owner generated the map and the server is sending it to all players in the room. This will trigger the game start.
+socket.on('init-game', initGame);
+
+function initGame(data) {
+  if (!roomOwner)
+    initGameScene(data.map);
+}
 
 function displayJoinError() {
   alert('This server is full!');
+}
+
+function displayStartGameError(data) {
+  alert(data.message);
+}
+
+function displayLoading() {
+  $waitingLobbyForm.hide();
+  //$loadingScreenContainer.show();
+  if (roomOwner) {
+    initMapGenerationScene();
+  }
 }
 
 function leaveRoom(data) {
@@ -28,6 +51,7 @@ function displayLobby(data) {
   $serverCreationForm.hide();
   $waitingLobbyForm.show();
   $playerListing.empty();
+
   $('.owner-name').text(data.owner);
   // Change the number of people shown in the slots.
   $('.lobby-slots').text('(' + data.players.length + '/' + data.slots +')');

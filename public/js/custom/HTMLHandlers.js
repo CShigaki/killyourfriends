@@ -20,6 +20,7 @@ function setupHTMLHandlers() {
   $serverCreationForm = $('.server-creation');
   $serverCreationFormElement = $('.server-form');
   $waitingLobbyForm = $('.waiting-lobby');
+  $loadingScreenContainer = $('.loading-screen');
 
   // Button for choosing a name.
   $registerNameButton.click(function() {
@@ -39,8 +40,8 @@ function setupHTMLHandlers() {
   // Button for joining a server.
   if (!hasClickHandler($joinGameButton)) {
     $joinGameButton.click(function() {
+      roomOwner = false;
       if ($('.selected-server').length != 0) {
-        $serverSelectionForm.hide();
         currentServer = $('.selected-server').data('value');
         socket.emit('join-server', { name: $('.selected-server').data('value'), });
       }
@@ -57,6 +58,7 @@ function setupHTMLHandlers() {
         name: $serverNameField.val(),
         slots: $('.players-slots').val()
       });
+      roomOwner = true;
       currentServer = $serverNameField.val();
       $serverCreationFormElement.get(0).reset();
       $serverCreationForm.hide();
@@ -88,7 +90,7 @@ function setupHTMLHandlers() {
 
   // Room button for starting game.
   $startGameButton.click(function() {
-
+    socket.emit('start-game', { serverName: currentServer });
   });
 
   // Room button for getting ready.

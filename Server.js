@@ -24,8 +24,6 @@ Server.prototype.freeSlots = function() {
 
 Server.prototype.removePlayer = function(id) {
   var playerListArrayNew = new Array();
-  console.log('Inside RemovePlayer. Id: ' + id);
-  console.log(this.playersOnline);
   for (var playerId in this.playersOnline) {
     if (playerId != id) {
       playerListArrayNew[playerId] = this.playersOnline[playerId];
@@ -35,11 +33,7 @@ Server.prototype.removePlayer = function(id) {
 }
 
 Server.prototype.addPlayer = function(id, name, socket) {
-  console.log('Add Player Before Adding: ');
-  console.log(this.playersOnline);
   this.playersOnline[id] = new Player(id, name, socket);
-  console.log('Add Player After Adding: ');
-  console.log(this.playersOnline);
 };
 
 // Used to get a specific player (may need rework later).
@@ -56,6 +50,17 @@ Server.prototype.getOwner = function() {
 Server.prototype.retrievePlayers = function() {
   return this.playersOnline;
 };
+
+// Use this if you want to check if all players are ready
+Server.prototype.canStartGame = function() {
+  for (var id in this.playersOnline) {
+    if (!this.playersOnline[id].getReadyState()) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 // Use this if you're going to send to the client.
 Server.prototype.retrievePlayersWithoutId = function() {
